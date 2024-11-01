@@ -2,6 +2,7 @@
 main
 zig-cache/
 zig-out/
+.zig-cache/
 
 # Compiled binary output
 bin/
