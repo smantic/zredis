@@ -7,8 +7,6 @@ pub fn main() !void {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     try stdout.print("Logs from your program will appear here!", .{});
 
-    // Uncomment this block to pass the first stage
-    //
     const address = try net.Address.resolveIp("127.0.0.1", 6379);
 
     var listener = try address.listen(.{
@@ -18,6 +16,8 @@ pub fn main() !void {
 
     while (true) {
         const connection = try listener.accept();
+
+        try connection.stream.writeAll("+PONG\r\n");
 
         try stdout.print("accepted new connection", .{});
         connection.stream.close();
