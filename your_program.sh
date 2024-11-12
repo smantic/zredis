@@ -8,7 +8,6 @@
 
 set -e # Exit early if any commands fail
 
-zig version
 # Copied from .codecrafters/compile.sh
 #
 # - Edit this to change how your program compiles locally
