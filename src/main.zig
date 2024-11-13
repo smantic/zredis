@@ -1,10 +1,12 @@
 const std = @import("std");
 const net = std.net;
 const eql = std.mem.eql;
+const xev = @import("xev");
 
 const stdout = std.io.getStdOut().writer();
 
 pub fn main() !void {
+    _ = xev;
 
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     try stdout.print("Logs from your program will appear here!", .{});
@@ -49,7 +51,7 @@ pub fn handle_conn(c: net.Server.Connection) !void {
     while (true) {
         const read_bytes = try c.stream.read(&buff);
         if (read_bytes == 0) break;
-        var iter = std.mem.tokenizeAny(u8, &buff, [][]u8{"\n\r"});
+        var iter = std.mem.tokenizeAny(u8, &buff, "\n\r");
 
         while (iter.next()) |str| {
             const indicator = Indicator.parse(str[0]);
@@ -58,7 +60,7 @@ pub fn handle_conn(c: net.Server.Connection) !void {
             if (indicator == Indicator.simple_string) {
                 const cmd = std.meta.stringToEnum(Command, str[1..]);
 
-                const resp = respond(cmd, .{});
+                const resp = respond(cmd.?, .{});
                 try stdout.print("responded: {s}\n", .{resp});
                 try c.stream.writeAll(resp);
             }
@@ -69,6 +71,7 @@ pub fn handle_conn(c: net.Server.Connection) !void {
 }
 
 const Indicator = enum {
+    unknown,
     simple_string,
     simple_error,
     integer,
@@ -102,6 +105,7 @@ const Indicator = enum {
             '`' => Indicator.attributes,
             '~' => Indicator.sets,
             '>' => Indicator.pushes,
+            else => Indicator.unknown,
         };
     }
 };
