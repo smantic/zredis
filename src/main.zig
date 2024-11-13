@@ -54,16 +54,10 @@ pub fn handle_conn(c: net.Server.Connection) !void {
         var iter = std.mem.tokenizeAny(u8, &buff, "\n\r");
 
         while (iter.next()) |str| {
-            const indicator = Indicator.parse(str[0]);
-
-            try stdout.print("indicator: {}\n", .{indicator});
-            if (indicator == Indicator.simple_string) {
-                const cmd = std.meta.stringToEnum(Command, str[1..]);
-
-                const resp = respond(cmd.?, .{});
-                try stdout.print("responded: {s}\n", .{resp});
-                try c.stream.writeAll(resp);
-            }
+            const cmd = std.meta.stringToEnum(Command, str);
+            const resp = respond(cmd, .{});
+            try stdout.print("responded: {s}\n", .{resp});
+            try c.stream.writeAll(resp);
         }
     }
 
@@ -111,14 +105,17 @@ const Indicator = enum {
 };
 
 const Command = enum {
-    ping,
-    echo,
+    PING,
+    ECHO,
 };
 
-pub fn respond(c: Command, args: anytype) []const u8 {
+pub fn respond(c: ?Command, args: anytype) []const u8 {
     _ = args;
-    return switch (c) {
-        .ping => "+PONG\r\n",
-        .echo => "+ECHO\r\n",
+    if (c == null) {
+        return "";
+    }
+    return switch (c.?) {
+        .PING => "+PONG\r\n",
+        .ECHO => "+ECHO\r\n",
     };
 }
